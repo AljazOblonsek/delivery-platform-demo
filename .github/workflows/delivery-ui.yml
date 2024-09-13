@@ -1,0 +1,45 @@
+name: delivery-ui
+
+on:
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - .github/actions/*/**
+      - .github/workflows/**
+      - 'services/delivery-ui/**'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - uses: ./.github/actions/delivery-ui-common
+        name: Setup delivery ui
+      - name: Build
+        run: npm run build
+        working-directory: services/delivery-ui
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - uses: ./.github/actions/delivery-ui-common
+        name: Setup delivery ui
+      - name: Lint
+        run: npm run lint
+        working-directory: services/delivery-ui
+  unit-test:
+    name: Unit Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - uses: ./.github/actions/delivery-ui-common
+        name: Setup delivery ui
+      - name: Unit Test
+        run: npm run test
+        working-directory: services/delivery-ui

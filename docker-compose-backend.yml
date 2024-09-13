@@ -1,0 +1,71 @@
+name: dp-dev
+
+include:
+  - ./docker-compose.yml
+
+services:
+  blockchain-service:
+    container_name: dp-dev-blockchain-service
+    build:
+      context: ./services/blockchain-service
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: info
+      POSTGRES_HOST: blockchain-service-postgres
+      POSTGRES_PORT: ${BLOCKCHAIN_SERVICE_POSTGRES_PORT}
+      POSTGRES_DB: ${BLOCKCHAIN_SERVICE_POSTGRES_DB}
+      POSTGRES_USER: ${BLOCKCHAIN_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${BLOCKCHAIN_SERVICE_POSTGRES_PASSWORD}
+      RABBITMQ_PROTOCOL: amqp
+      RABBITMQ_HOSTNAME: rabbitmq
+      RABBITMQ_PORT: 5672
+      PACKAGE_NOTIFICATION_QUEUE_NAME: package-notification-queue
+      WALLET_PRIVATE_KEY_ENCRYPTION_SECRET_KEY: ${WALLET_PRIVATE_KEY_ENCRYPTION_SECRET_KEY}
+      TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY: ${TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY}
+      ETHEREUM_PROVIDER: ${ETHEREUM_PROVIDER}
+      LOCAL_NODE_URL: ${LOCAL_NODE_URL}
+      DEPLOYMENT_WALLET_PRIVATE_KEY: ${DEPLOYMENT_WALLET_PRIVATE_KEY}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      OTEL_EXPORT_URL: ${OTEL_EXPORT_URL}
+    # With this option the container will keep restarting until rabbitmq and postgres is up and ready
+    restart: on-failure
+    depends_on:
+      - jaeger
+      - rabbitmq
+      - blockchain-service-postgres
+
+  delivery-service:
+    container_name: dp-dev-delivery-service
+    build:
+      context: ./services/delivery-service
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: info
+      PORT: 8000
+      POSTGRES_HOST: delivery-service-postgres
+      POSTGRES_PORT: ${DELIVERY_SERVICE_POSTGRES_PORT}
+      POSTGRES_DB: ${DELIVERY_SERVICE_POSTGRES_DB}
+      POSTGRES_USER: ${DELIVERY_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DELIVERY_SERVICE_POSTGRES_PASSWORD}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      RABBITMQ_HOSTNAME: rabbitmq
+      RABBITMQ_PORT: 5672
+      PACKAGE_NOTIFICATION_QUEUE_NAME: package-notification-queue
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRES_IN_HOURS: ${JWT_EXPIRES_IN_HOURS}
+      TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY: ${TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY}
+      TRACK_UI_BASE_URL: ${TRACK_UI_BASE_URL}
+      DELIVERY_UI_ORIGINS: ${DELIVERY_UI_ORIGINS}
+      OTEL_EXPORT_URL: ${OTEL_EXPORT_URL}
+    # With this option the container will keep restarting until rabbitmq and postgres is up and ready
+    restart: on-failure
+    depends_on:
+      - jaeger
+      - rabbitmq
+      - mailpit
+      - delivery-service-postgres
+    ports:
+      - '8000:8000'

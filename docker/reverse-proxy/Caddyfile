@@ -1,0 +1,43 @@
+{
+  debug
+}
+
+http://:3000 {
+  reverse_proxy tracking-ui:3000
+}
+
+http://:3001 {
+  reverse_proxy delivery-ui-http:3001
+}
+
+https://:3002 {
+  tls internal {
+    on_demand
+  }
+
+  reverse_proxy delivery-ui-https:3002
+}
+
+http://:8000 {
+  reverse_proxy delivery-service:8000
+}
+
+https://:8001 {
+  tls internal {
+    on_demand
+  }
+
+  reverse_proxy delivery-service:8000
+}
+
+http://:8025 {
+  reverse_proxy mailpit:8025
+}
+
+http://:8545 {
+  reverse_proxy ethereum-node:8545
+}
+
+http://:16686 {
+  reverse_proxy jaeger:16686
+}

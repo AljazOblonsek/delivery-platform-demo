@@ -1,0 +1,49 @@
+name: delivery-service
+
+on:
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - .github/actions/*/**
+      - .github/workflows/**
+      - 'services/delivery-service/**'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - uses: ./.github/actions/delivery-service-common
+        name: Setup delivery service
+      - name: Build
+        run: dotnet build
+        working-directory: services/delivery-service/delivery-service-api
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15.4-alpine3.18
+        env:
+          PGPORT: 5434
+          POSTGRES_DB: delivery-service-db
+          POSTGRES_USER: delivery-service-user
+          POSTGRES_PASSWORD: delivery-service-password
+        ports:
+          - 5434:5434
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+      - uses: ./.github/actions/delivery-service-common
+        name: Setup delivery service
+      - name: Integration Test
+        run: dotnet test
+        working-directory: services/delivery-service/delivery-service-api-integration-tests

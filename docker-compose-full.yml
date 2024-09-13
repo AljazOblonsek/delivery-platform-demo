@@ -1,0 +1,202 @@
+name: dp-prod
+
+services:
+  ethereum-node:
+    container_name: dp-prod-ethereum-node
+    build:
+      context: ./services/smart-contract
+      dockerfile: Dockerfile
+    expose:
+      - '8545'
+    volumes:
+      - ./scripts/startup/local-development-setup-data.json:/app/local-development-setup-data.json:ro
+
+  rabbitmq:
+    container_name: dp-prod-rabbitmq
+    image: rabbitmq:3.13.3-management-alpine
+    expose:
+      - '5672'
+      - '15672'
+    volumes:
+      - ./.docker-volumes/prod/rabbitmq/data:/var/lib/rabbitmq:rw
+      - ./.docker-volumes/prod/rabbitmq/logs:/var/log/rabbitmq:rw
+      - ./scripts/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./scripts/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+
+  blockchain-service-postgres:
+    container_name: dp-prod-blockchain-service-postgres
+    image: postgres:15.4-alpine3.18
+    environment:
+      PGPORT: ${BLOCKCHAIN_SERVICE_POSTGRES_PORT}
+      POSTGRES_DB: ${BLOCKCHAIN_SERVICE_POSTGRES_DB}
+      POSTGRES_USER: ${BLOCKCHAIN_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${BLOCKCHAIN_SERVICE_POSTGRES_PASSWORD}
+    expose:
+      - '5433'
+    volumes:
+      - ./.docker-volumes/prod/blockchain-service-postgres:/var/lib/postgresql/data:rw
+
+  delivery-service-postgres:
+    container_name: dp-prod-delivery-service-postgres
+    image: postgres:15.4-alpine3.18
+    environment:
+      PGPORT: ${DELIVERY_SERVICE_POSTGRES_PORT}
+      POSTGRES_DB: ${DELIVERY_SERVICE_POSTGRES_DB}
+      POSTGRES_USER: ${DELIVERY_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DELIVERY_SERVICE_POSTGRES_PASSWORD}
+    expose:
+      - '5434'
+    volumes:
+      - ./.docker-volumes/prod/delivery-service-postgres:/var/lib/postgresql/data:rw
+
+  mailpit:
+    container_name: dp-prod-mailpit
+    image: axllent/mailpit:v1.19.1
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    expose:
+      - '1025'
+      - '8025'
+    volumes:
+      - ./.docker-volumes/prod/mailpit:/data:rw
+
+  jaeger:
+    container_name: dp-prod-jaeger
+    image: jaegertracing/all-in-one:1.60
+    expose:
+      - '4317'
+      - '16686'
+
+  blockchain-service:
+    container_name: dp-prod-blockchain-service
+    build:
+      context: ./services/blockchain-service
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: info
+      POSTGRES_HOST: blockchain-service-postgres
+      POSTGRES_PORT: ${BLOCKCHAIN_SERVICE_POSTGRES_PORT}
+      POSTGRES_DB: ${BLOCKCHAIN_SERVICE_POSTGRES_DB}
+      POSTGRES_USER: ${BLOCKCHAIN_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${BLOCKCHAIN_SERVICE_POSTGRES_PASSWORD}
+      RABBITMQ_PROTOCOL: amqp
+      RABBITMQ_HOSTNAME: rabbitmq
+      RABBITMQ_PORT: 5672
+      PACKAGE_NOTIFICATION_QUEUE_NAME: package-notification-queue
+      WALLET_PRIVATE_KEY_ENCRYPTION_SECRET_KEY: ${WALLET_PRIVATE_KEY_ENCRYPTION_SECRET_KEY}
+      TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY: ${TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY}
+      ETHEREUM_PROVIDER: ${ETHEREUM_PROVIDER}
+      LOCAL_NODE_URL: ${LOCAL_NODE_URL}
+      DEPLOYMENT_WALLET_PRIVATE_KEY: ${DEPLOYMENT_WALLET_PRIVATE_KEY}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      OTEL_EXPORT_URL: ${OTEL_EXPORT_URL}
+    # With this option the container will keep restarting until rabbitmq and postgres is up and ready
+    restart: on-failure
+    depends_on:
+      - jaeger
+      - rabbitmq
+      - blockchain-service-postgres
+
+  delivery-service:
+    container_name: dp-prod-delivery-service
+    build:
+      context: ./services/delivery-service
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: info
+      PORT: 8000
+      POSTGRES_HOST: delivery-service-postgres
+      POSTGRES_PORT: ${DELIVERY_SERVICE_POSTGRES_PORT}
+      POSTGRES_DB: ${DELIVERY_SERVICE_POSTGRES_DB}
+      POSTGRES_USER: ${DELIVERY_SERVICE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DELIVERY_SERVICE_POSTGRES_PASSWORD}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      RABBITMQ_HOSTNAME: rabbitmq
+      RABBITMQ_PORT: 5672
+      PACKAGE_NOTIFICATION_QUEUE_NAME: package-notification-queue
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRES_IN_HOURS: ${JWT_EXPIRES_IN_HOURS}
+      TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY: ${TRACK_NUMBER_META_PRIVATE_KEY_ENCRYPTION_SECRET_KEY}
+      TRACK_UI_BASE_URL: ${TRACK_UI_BASE_URL}
+      DELIVERY_UI_ORIGINS: ${DELIVERY_UI_ORIGINS}
+      OTEL_EXPORT_URL: ${OTEL_EXPORT_URL}
+    # With this option the container will keep restarting until rabbitmq and postgres is up and ready
+    restart: on-failure
+    depends_on:
+      - jaeger
+      - rabbitmq
+      - mailpit
+      - delivery-service-postgres
+    expose:
+      - '8000'
+
+  tracking-ui:
+    container_name: dp-prod-tracking-ui
+    build:
+      context: services/tracking-ui
+      dockerfile: Dockerfile
+    environment:
+      ETHEREUM_PROVIDER: ${ETHEREUM_PROVIDER}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      LOCAL_NODE_URL: ${LOCAL_NODE_URL}
+    depends_on:
+      - ethereum-node
+    expose:
+      - '3000'
+
+  delivery-ui-http:
+    container_name: dp-prod-delivery-ui-http
+    build:
+      context: services/delivery-ui
+      dockerfile: Dockerfile
+    environment:
+      VITE_ENV: development
+      VITE_API_URL: ${DELIVERY_UI_HTTP_API_URL}
+    depends_on:
+      - blockchain-service
+      - delivery-service
+    expose:
+      - '3001'
+
+  delivery-ui-https:
+    container_name: dp-prod-delivery-ui-https
+    build:
+      context: services/delivery-ui
+      dockerfile: Dockerfile
+    environment:
+      VITE_ENV: development
+      VITE_API_URL: ${DELIVERY_UI_HTTPS_API_URL}
+    depends_on:
+      - blockchain-service
+      - delivery-service
+    expose:
+      - '3002'
+
+  reverse-proxy:
+    container_name: dp-prod-reverse-proxy
+    image: caddy:2.8.4-alpine
+    depends_on:
+      - ethereum-node
+      - blockchain-service
+      - delivery-service
+      - delivery-ui-http
+      - delivery-ui-https
+    ports:
+      - '3000:3000'
+      - '3001:3001'
+      - '3002:3002'
+      - '8000:8000'
+      - '8001:8001'
+      - '8025:8025'
+      - '8545:8545'
+      - '16686:16686'
+    volumes:
+      - './docker/reverse-proxy/Caddyfile:/etc/caddy/Caddyfile'
+      - './.docker-volumes/prod/reverse-proxy/data:/data'
+      - './.docker-volumes/prod/reverse-proxy/config:/config'

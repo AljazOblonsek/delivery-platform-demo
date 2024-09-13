@@ -1,0 +1,56 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="35px" align="center">Delivery Platform Demo</mj-text>
+        <mj-divider></mj-divider>
+        <mj-text font-size="16px">
+        	<p>Delivery company <b>{{ companyName }}</b> has picked up your package and will delivery it shortly.</p>
+
+          <div>
+            <!-- Style of Chakra UI Button -->
+            <a href="{{ trackUrl }}" style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              user-select: none;
+              white-space: nowrap;
+              vertical-align: middle;
+              outline: 2px solid transparent;
+              outline-offset: 2px;
+              line-height: 1.2;
+              border-radius: 4px;
+              height: 40px;
+              width: 100%;
+              font-size: 16px;
+              background-color: #171923;
+              color: #FFFFFF;
+              margin-top: 8px;
+              text-decoration: none;
+              cursor: pointer;
+            ">
+              Track Your Package
+            </a>
+            <p style="margin-top: 7px; font-size: 12px">If the link above does not work open <a href="{{ trackUiBaseUrl }}" target="_blank">{{ trackUiBaseUrl }}</a> and enter the package information below.</p>
+          </div>
+          
+          
+          <p>
+            <p style="font-weight: bold">Package Information</p>
+            <ul>
+            	<li><b>Item:</b> {{ packageTitle }}</li>
+              <li><b>Track Number:</b> {{ trackNumber }}</li>
+              <li><b>Tracking Secret Key:</b> {{ trackSecretKey }}</li>
+            </ul>
+          </p>
+          
+          
+        </mj-text>
+        
+        <mj-text color="#404040" font-style="italic">
+        	Note: This is an automated email - do not reply.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

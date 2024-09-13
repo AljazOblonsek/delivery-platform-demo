@@ -1,0 +1,5 @@
+*/bin
+*/obj
+*/.dockerignore
+*/.env
+*/.env.example

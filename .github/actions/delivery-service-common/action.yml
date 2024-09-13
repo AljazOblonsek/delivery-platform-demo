@@ -1,0 +1,13 @@
+name: delivery-service-common
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-dotnet@v4
+      name: Setup dotnet
+      with:
+        dotnet-version: '8.0.x'
+    - name: Restore dependencies
+      run: dotnet restore delivery-service.sln
+      shell: bash
+      working-directory: services/delivery-service
