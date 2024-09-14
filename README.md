@@ -46,7 +46,7 @@ Ensure you have the following tools installed:
 To start the project, run the following command:
 
 ```bash
-docker compose -f docker-compose-full.yml --env-file ./.env.full-example up --build
+docker compose -f docker-compose-full.yml --env-file ./.env.full-example up
 ```
 
 > [!NOTE]
