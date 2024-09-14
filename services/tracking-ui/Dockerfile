@@ -10,7 +10,6 @@ RUN npm ci
 COPY ./app /app/app
 COPY ./lib /app/lib
 COPY ./public /app/public
-COPY ./next-env.d.ts /app/next-env.d.ts
 COPY ./next.config.mjs /app/next.config.mjs
 COPY ./tsconfig.json /app/tsconfig.json
 
