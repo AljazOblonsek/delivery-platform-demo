@@ -46,7 +46,3 @@ This will enable the server to be accessed over LAN and also generate a fake SSL
 
 3. Make sure to allow node process to go thru the firewall in your windows/mac firewall settings.
 4. Access the app on your phone on the url provided in the console when you started the server. (Example Url: `https://192.168.1.111:3001`)
-
-## Notes
-
-- Could probably optimize stuff in `AppRouter`
