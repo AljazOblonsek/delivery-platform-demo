@@ -1,5 +1,5 @@
 import { Button, FormControl, FormLabel, Input, Stack } from '@chakra-ui/react';
-import { DashboardLayout, useAuthStore } from '@/core';
+import { DashboardLayout, LocalStorageKey, useAuthStore } from '@/core';
 
 export const ProfilePage = () => {
   const { user, unauthenticate } = useAuthStore((state) => ({
@@ -55,6 +55,7 @@ export const ProfilePage = () => {
 
         <Button
           onClick={() => {
+            localStorage.removeItem(LocalStorageKey.AccessToken);
             unauthenticate();
           }}
           data-testid="logout-button"
