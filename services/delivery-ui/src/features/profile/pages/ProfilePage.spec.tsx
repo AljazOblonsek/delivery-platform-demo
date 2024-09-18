@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ProfilePage } from './ProfilePage';
-import { User } from '@/core';
+import { LocalStorageKey, User } from '@/core';
 
 const userStub: User = {
   id: '1',
@@ -43,6 +43,8 @@ describe('ProfilePage', () => {
   });
 
   it('should unauthenticate user on logout button click', async () => {
+    const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
+
     render(<ProfilePage />);
 
     const logoutButton = screen.getByTestId('logout-button');
@@ -50,6 +52,8 @@ describe('ProfilePage', () => {
     fireEvent.click(logoutButton);
 
     await waitFor(() => {
+      expect(removeItemSpy).toHaveBeenCalledTimes(1);
+      expect(removeItemSpy).toHaveBeenCalledWith(LocalStorageKey.AccessToken);
       expect(unauthenticateSpy).toHaveBeenCalledTimes(1);
     });
   });
