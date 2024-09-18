@@ -9,7 +9,7 @@ export const ProfilePage = () => {
 
   return (
     <DashboardLayout title="Profile" description="Information about your profile.">
-      <Stack spacing={20} as="form">
+      <Stack spacing={10} as="form">
         <Stack spacing={5} fontSize="lg">
           <FormControl>
             <FormLabel htmlFor="email">Email</FormLabel>
