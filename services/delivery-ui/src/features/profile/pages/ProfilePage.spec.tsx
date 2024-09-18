@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ProfilePage } from './ProfilePage';
 import { User } from '@/core';
@@ -40,5 +40,17 @@ describe('ProfilePage', () => {
     expect(await screen.findByTestId('firstname-input')).toHaveValue(userStub.firstname);
     expect(await screen.findByTestId('lastname-input')).toHaveValue(userStub.lastname);
     expect(await screen.findByTestId('delivery-company-input')).toHaveValue(userStub.companyName);
+  });
+
+  it('should unauthenticate user on logout button click', async () => {
+    render(<ProfilePage />);
+
+    const logoutButton = screen.getByTestId('logout-button');
+
+    fireEvent.click(logoutButton);
+
+    await waitFor(() => {
+      expect(unauthenticateSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });
