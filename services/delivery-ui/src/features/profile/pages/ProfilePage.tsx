@@ -1,11 +1,10 @@
 import { Button, FormControl, FormLabel, Input, Stack } from '@chakra-ui/react';
-import { useLocation } from 'wouter';
-import { DashboardLayout, Routes, useAuthStore } from '@/core';
+import { DashboardLayout, useAuthStore } from '@/core';
 
 export const ProfilePage = () => {
-  const [_, setLocation] = useLocation();
-  const { user } = useAuthStore((state) => ({
+  const { user, unauthenticate } = useAuthStore((state) => ({
     user: state.user,
+    unauthenticate: state.unauthenticate,
   }));
 
   return (
@@ -56,8 +55,9 @@ export const ProfilePage = () => {
 
         <Button
           onClick={() => {
-            setLocation(Routes.Login);
+            unauthenticate();
           }}
+          data-testid="logout-button"
         >
           Logout
         </Button>
