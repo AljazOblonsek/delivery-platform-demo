@@ -8,4 +8,5 @@ export const colors = {
   colors: {
     ...stepperColor,
   },
+  muted: '#000000c2',
 };

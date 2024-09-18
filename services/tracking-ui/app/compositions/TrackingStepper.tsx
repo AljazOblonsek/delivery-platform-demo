@@ -2,7 +2,6 @@
 
 import {
   Box,
-  HStack,
   Stack,
   Step,
   StepDescription,
@@ -17,6 +16,7 @@ import {
 import { faBox, faCheck, faTruck } from '@fortawesome/free-solid-svg-icons';
 import { ReactNode } from 'react';
 import IconWrapper from '@/app/components/IconWrapper';
+import { colors } from '@/app/theme/colors';
 import { PackageStatus } from '@/lib/enums/package-status.enum';
 import { PackageHistoryType } from '@/lib/schemas/packageHistory.schema';
 
@@ -59,11 +59,12 @@ export const TrackingStepper = ({ history }: TrackingStepperProps) => {
 
   return (
     <Stack spacing={4}>
-      <HStack>
-        <Text as={'b'}>{title}</Text>
-        <Text>delivered by</Text>
-        <Text as={'b'}>{deliveryCompany}</Text>
-      </HStack>
+      <Stack alignItems="center" spacing={0}>
+        <Text fontWeight="bold">{title}</Text>
+        <Text as={'span'} color={colors.muted}>
+          Delivered by {deliveryCompany}
+        </Text>
+      </Stack>
       <Stepper
         colorScheme={'stepperColor'}
         index={activeStep}
